@@ -1,22 +1,82 @@
 <template>
     <div class="task-container">
-        <div class="task-title">
-            <input type="checkbox" />
-            <h2>Task 1 Water the plant or something</h2>
-        </div>
+        <label class="task-title">
+            <input type="checkbox" v-model="isChecked" />
+            <h2>{{ title }}</h2>
+        </label>
         
         <div class="label-wrapper">
             <label class="date-label">
                 <ClockIcon class="icon" />
-                14/06/24 00:00
+                {{ dueDate }}
             </label>
-            <label class="priority-label">Important</label>
+            <label :class="['priority-label', priorityClass]">{{ priority }}</label>
         </div>
+
+        <button class="delete-btn" @click="deleteTask">
+            <TrashIcon class="icon" />
+        </button>
     </div>
 </template>
 
 <script setup>
-    import { ClockIcon } from '@heroicons/vue/16/solid';
+import { ClockIcon, TrashIcon } from '@heroicons/vue/16/solid';
+import axios from 'axios';
+import { computed, ref, watch } from 'vue';
+
+const {id, title, dueDate, priority, isCompleted} = defineProps({
+    id: {
+        type: String,
+        required: true
+    },
+    title: {
+        type: String,
+        required: true
+    },
+    dueDate: {
+        type: String,
+        default: ''
+    },
+    priority: {
+        type: String,
+        default: 'low'
+    },
+    isCompleted: {
+        type: Boolean,
+        default: false
+    }
+})
+
+const emit = defineEmits(['update:isCompleted', 'deleteTask']);
+
+const isChecked = ref(!!isCompleted);
+
+watch(() => isChecked.value, (newValue) => {
+    emit('update:isCompleted', newValue);
+});
+
+const priorityClass = computed(() => {
+    switch (priority) {
+        case 'low':
+            return 'priority-low';
+        case 'medium':
+            return 'priority-medium';
+        case 'high':
+            return 'priority-high';
+        default:
+            return '';
+    }
+});
+
+function deleteTask() {
+    axios.delete('/api/tasks/'+id)
+        .then(() => {
+            emit('deleteTask', id)
+        })
+        .catch((error) => {
+            console.log(error)
+        })
+}
 </script>
 
 <style scoped>
@@ -46,6 +106,10 @@
     font-size: 18px;
 }
 
+input:checked ~ h2 {
+    text-decoration: line-through;
+}
+
 .label-wrapper {
     display: flex;
     justify-content: space-between;
@@ -67,10 +131,21 @@
     padding: 5px 20px;
     border-radius: 100px;
     color: var(--light);
-    background-color: rgb(138, 21, 21);
 }
 
-.elipsis-button {
+.priority-low {
+    background-color: green;
+}
+
+.priority-medium {
+    background-color: orange;
+}
+
+.priority-high {
+    background-color: red;
+}
+
+.delete-btn {
     position: absolute;
     top: 5px;
     right: 12px;
@@ -82,7 +157,7 @@
     cursor: pointer;
 }
 
-.elipsis-button:hover {
+.delete-btn:hover {
     background-color: var(--grey);
 }
 </style>

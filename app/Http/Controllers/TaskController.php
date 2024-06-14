@@ -24,7 +24,6 @@ class TaskController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -32,7 +31,12 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request)
     {
-        //
+        $task = Task::create($request->validated());
+
+        return response()->json([
+            'task' => $task,
+            'message' => 'Task created successfully'
+        ], 201);
     }
 
     /**
@@ -64,6 +68,12 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        try {
+            $task->delete();
+
+            return response()->json(['message' => 'Task deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete task', 'error' => $e->getMessage()], 500);
+        }
     }
 }

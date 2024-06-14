@@ -22,6 +22,7 @@ class TaskFactory extends Factory
             'title' => $this->faker->sentence,
             'due_date' => $this->faker->date(),
             'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
+            'is_completed' => $this->faker->boolean()
         ];
     }
 }

@@ -5,9 +5,9 @@
             <input v-model="form.date" type="date" />
             <select v-model="form.priority">
                 <option disabled selected value="">Select priorities</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
             </select>
         </form>
 
@@ -16,7 +16,7 @@
             <button @click="onClickCancel" class="cancel">
                 Cancel
             </button>
-            <button @click="handleAddtask">
+            <button @click="handleAddTask">
                 Add Task
             </button>
         </div>
@@ -25,7 +25,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import axios from 'axios';
+import { computed, reactive } from 'vue';
 
 const props = defineProps({
     isVisible: {
@@ -34,17 +35,32 @@ const props = defineProps({
     }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'taskCreated'])
 
-const form = ref({
-    title: '',
-    date: '',
-    priority: ''
+const form = reactive({
+  title: '',
+  due_date: '',
+  priority: ''
+});
+
+const savePayload = computed(() => {
+    return {
+        user_id: 1,
+        title: form.title,
+        due_date: form.date,
+        priority: form.priority,
+        is_completed: false
+    }
+
 })
 
 
-function handleAddtask() {
-    console.log(form.value);
+function handleAddTask() {
+    axios.post('/api/task/create', savePayload.value)
+        .then((response) => {
+            emit('taskCreated', response.data.task)
+            emit('close')
+        })
 }
 
 function onClickCancel() {

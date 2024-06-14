@@ -9,9 +9,15 @@
                 + Create New Task
             </button>
             <div class="task-list-container">
-                <Task />
-                <Task />
-                <Task />
+                <Task v-for="task in sortedTasks"
+                    :key="task.id" 
+                    :id="task.id"
+                    :title="task.title" 
+                    :dueDate="task.due_date"
+                    :priority="task.priority"
+                    v-model:isCompleted="task.is_completed"
+                    @deleteTask="deleteTask"
+                />
             </div>
         </div>
     </div>
@@ -19,17 +25,52 @@
     <CreateModal 
         :isVisible="isModalVisible"
         @close="isModalVisible = false"
+        @taskCreated="addTaskToList"
     />
 
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import CreateModal from '../components/CreateModal.vue';
 import Sidebar from '../components/Sidebar.vue'
 import Task from '../components/Task.vue';
+import axios from 'axios';
+
 
 const isModalVisible = ref(false);
+const tasks = ref([]);
+
+const sortedTasks = computed(() => {
+    const completedTask = tasks.value.filter(task => task.is_completed)
+    const nonCompletedTask = tasks.value.filter(task => !task.is_completed)
+
+    return [...nonCompletedTask, ...completedTask]
+})
+
+onMounted(() => {
+    fetchTasks()
+})
+
+function fetchTasks() {
+    axios.get('/api/tasks')
+        .then(response => {
+            tasks.value = response.data?.tasks
+        }).catch(err => {
+            console.log(err)
+        }).finally(() => {
+            console.log('tasks fetched!')
+        })
+}
+
+function addTaskToList(newTask) {
+    tasks.value.push(newTask);
+}
+
+function deleteTask(id) {
+    tasks.value.filter((task) => task.id !== id)
+}
+
 </script>
 
 <style scoped>
