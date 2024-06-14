@@ -3,74 +3,89 @@
         <Sidebar />
         <div class="tasks-wrapper">
             <h1>Task List</h1>
-            <button
-                @click="isModalVisible = true"
-            >
-                + Create New Task
-            </button>
+            <button @click="isModalVisible = true">+ Create New Task</button>
+            <SearchBar
+                v-model:searchQuery="searchQuery"
+                v-model:sortOption="sortOption"
+            />
             <div class="task-list-container">
-                <Task v-for="task in sortedTasks"
-                    :key="task.id" 
+                <Task
+                    v-for="task in filteredAndSortedTasks"
+                    :key="task.id"
                     :id="task.id"
-                    :title="task.title" 
+                    :title="task.title"
                     :dueDate="task.due_date"
                     :priority="task.priority"
                     v-model:isCompleted="task.is_completed"
-                    @deleteTask="deleteTask"
                 />
             </div>
         </div>
     </div>
 
-    <CreateModal 
-        :isVisible="isModalVisible"
-        @close="isModalVisible = false"
-        @taskCreated="addTaskToList"
-    />
-
+    <CreateModal :isVisible="isModalVisible" @close="isModalVisible = false" />
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import CreateModal from '../components/CreateModal.vue';
-import Sidebar from '../components/Sidebar.vue'
-import Task from '../components/Task.vue';
-import axios from 'axios';
+import { computed, onMounted, ref } from "vue";
+import CreateModal from "../components/CreateModal.vue";
+import Sidebar from "../components/Sidebar.vue";
+import Task from "../components/Task.vue";
+import SearchBar from "../components/SearchBar.vue";
+import { useStore } from "../store/store";
+import { useRouter } from "vue-router";
 
+const PRIORITY_MAP = {
+    high: 1,
+    medium: 2,
+    low: 3,
+};
+
+const store = useStore();
+const router = useRouter();
 
 const isModalVisible = ref(false);
-const tasks = ref([]);
+const searchQuery = ref("");
+const sortOption = ref("dueDate");
 
-const sortedTasks = computed(() => {
-    const completedTask = tasks.value.filter(task => task.is_completed)
-    const nonCompletedTask = tasks.value.filter(task => !task.is_completed)
+const filteredAndSortedTasks = computed(() => {
+    const filteredTasks = store.tasks.filter((task) =>
+        task.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+    const sortedTask = sortTask([...filteredTasks], sortOption.value);
 
-    return [...nonCompletedTask, ...completedTask]
-})
+    const completedTask = sortedTask.filter((task) => task.is_completed);
+    const nonCompletedTask = sortedTask.filter((task) => !task.is_completed);
+    return [...nonCompletedTask, ...completedTask];
+});
 
 onMounted(() => {
-    fetchTasks()
-})
+    store.fetchUser();
 
-function fetchTasks() {
-    axios.get('/api/tasks')
-        .then(response => {
-            tasks.value = response.data?.tasks
-        }).catch(err => {
-            console.log(err)
-        }).finally(() => {
-            console.log('tasks fetched!')
-        })
+    if (!store.isAuthenticated) {
+        router.push("/login");
+    }
+});
+
+function sortTask(array, sort) {
+    if (sort === "dueDate") {
+        return array.sort(
+            (a, b) => new Date(a.due_date) - new Date(b.due_date)
+        );
+    } else if (sort === "priority") {
+        return array.sort((a, b) => {
+            if (a.priority === b.priority) {
+                return new Date(a.due_date) - new Date(b.due_date);
+            }
+            return PRIORITY_MAP[a.priority] - PRIORITY_MAP[b.priority];
+        });
+    } else if (sort === "alphabetical_dsc") {
+        return array.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sort === "alphabetical_asc") {
+        return array.sort((a, b) => b.title.localeCompare(a.title));
+    }
+
+    return array;
 }
-
-function addTaskToList(newTask) {
-    tasks.value.push(newTask);
-}
-
-function deleteTask(id) {
-    tasks.value.filter((task) => task.id !== id)
-}
-
 </script>
 
 <style scoped>
@@ -99,6 +114,6 @@ button {
 }
 
 h1 {
-    color: var(--dark)
+    color: var(--dark);
 }
 </style>

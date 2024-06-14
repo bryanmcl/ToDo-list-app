@@ -4,8 +4,8 @@
 }
 
 #app {
-    --light: #ffffff;
-    --grey: #eee;
+    --light-grey: #eee;
+    --grey: #ccc;
     --pale-dogwood: #ddc8c4ff;
     --primary: rgb(29, 104, 216);
     --eggplant: #6b4d57ff;

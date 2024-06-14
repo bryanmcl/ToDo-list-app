@@ -11,60 +11,53 @@
             </select>
         </form>
 
-
         <div class="action-button">
-            <button @click="onClickCancel" class="cancel">
-                Cancel
-            </button>
-            <button @click="handleAddTask">
-                Add Task
-            </button>
+            <button @click="onClickCancel" class="cancel">Cancel</button>
+            <button @click="handleAddTask">Add Task</button>
         </div>
     </div>
     <div v-if="isVisible" class="overlay"></div>
 </template>
 
 <script setup>
-import axios from 'axios';
-import { computed, reactive } from 'vue';
+import { computed, reactive } from "vue";
+import { useStore } from "../store/store";
+
+const store = useStore();
 
 const props = defineProps({
     isVisible: {
         type: Boolean,
-        default: false
-    }
-})
+        default: false,
+    },
+});
 
-const emit = defineEmits(['close', 'taskCreated'])
+const emit = defineEmits(["close", "taskCreated"]);
 
 const form = reactive({
-  title: '',
-  due_date: '',
-  priority: ''
+    title: "",
+    due_date: "",
+    priority: "",
 });
 
 const savePayload = computed(() => {
     return {
-        user_id: 1,
+        user_id: store.user.id,
         title: form.title,
         due_date: form.date,
         priority: form.priority,
-        is_completed: false
-    }
-
-})
-
+        is_completed: false,
+    };
+});
 
 function handleAddTask() {
-    axios.post('/api/task/create', savePayload.value)
-        .then((response) => {
-            emit('taskCreated', response.data.task)
-            emit('close')
-        })
+    console.log(savePayload);
+    store.addTask(savePayload.value);
+    emit("close");
 }
 
 function onClickCancel() {
-    emit('close')
+    emit("close");
 }
 </script>
 
@@ -84,7 +77,7 @@ function onClickCancel() {
     display: flex;
     flex-direction: column;
     padding: 1rem;
-    top:50%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     position: fixed;
@@ -100,8 +93,8 @@ form {
     flex-grow: 1;
 }
 
-input[type=text],
-input[type=date],
+input[type="text"],
+input[type="date"],
 select {
     padding: 10px;
     box-sizing: border-box;
@@ -113,7 +106,7 @@ input:focus {
     outline: none;
 }
 
-input[type=text] {
+input[type="text"] {
     width: 100%;
     font-size: 20px;
     font-weight: bold;
@@ -134,6 +127,6 @@ button {
 }
 
 .cancel {
-    background-color: grey
+    background-color: grey;
 }
 </style>

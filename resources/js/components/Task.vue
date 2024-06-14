@@ -4,13 +4,15 @@
             <input type="checkbox" v-model="isChecked" />
             <h2>{{ title }}</h2>
         </label>
-        
+
         <div class="label-wrapper">
             <label class="date-label">
                 <ClockIcon class="icon" />
                 {{ dueDate }}
             </label>
-            <label :class="['priority-label', priorityClass]">{{ priority }}</label>
+            <label :class="['priority-label', priorityClass]">{{
+                priority
+            }}</label>
         </div>
 
         <button class="delete-btn" @click="deleteTask">
@@ -20,62 +22,61 @@
 </template>
 
 <script setup>
-import { ClockIcon, TrashIcon } from '@heroicons/vue/16/solid';
-import axios from 'axios';
-import { computed, ref, watch } from 'vue';
+import { ClockIcon, TrashIcon } from "@heroicons/vue/16/solid";
+import { computed, ref, watch } from "vue";
+import { useStore } from "../store/store";
 
-const {id, title, dueDate, priority, isCompleted} = defineProps({
+const store = useStore();
+
+const { id, title, dueDate, priority, isCompleted } = defineProps({
     id: {
         type: String,
-        required: true
+        required: true,
     },
     title: {
         type: String,
-        required: true
+        required: true,
     },
     dueDate: {
         type: String,
-        default: ''
+        default: "",
     },
     priority: {
         type: String,
-        default: 'low'
+        default: "low",
     },
     isCompleted: {
         type: Boolean,
-        default: false
-    }
-})
+        default: false,
+    },
+});
 
-const emit = defineEmits(['update:isCompleted', 'deleteTask']);
+const emit = defineEmits(["update:isCompleted", "deleteTask"]);
 
 const isChecked = ref(!!isCompleted);
 
-watch(() => isChecked.value, (newValue) => {
-    emit('update:isCompleted', newValue);
-});
+watch(
+    () => isChecked.value,
+    (newValue) => {
+        emit("update:isCompleted", newValue);
+    }
+);
 
 const priorityClass = computed(() => {
     switch (priority) {
-        case 'low':
-            return 'priority-low';
-        case 'medium':
-            return 'priority-medium';
-        case 'high':
-            return 'priority-high';
+        case "low":
+            return "priority-low";
+        case "medium":
+            return "priority-medium";
+        case "high":
+            return "priority-high";
         default:
-            return '';
+            return "";
     }
 });
 
 function deleteTask() {
-    axios.delete('/api/tasks/'+id)
-        .then(() => {
-            emit('deleteTask', id)
-        })
-        .catch((error) => {
-            console.log(error)
-        })
+    store.deleteTask(id);
 }
 </script>
 
@@ -89,6 +90,7 @@ function deleteTask() {
     height: 80px;
 
     border-radius: 5px;
+    background-color: white;
     box-shadow: 2px 2px 5px 2px var(--grey);
 }
 
@@ -114,7 +116,6 @@ input:checked ~ h2 {
     display: flex;
     justify-content: space-between;
     align-items: end;
-
 }
 
 .label-wrapper .date-label {
@@ -130,19 +131,19 @@ input:checked ~ h2 {
 .priority-label {
     padding: 5px 20px;
     border-radius: 100px;
-    color: var(--light);
+    color: white;
 }
 
 .priority-low {
-    background-color: green;
+    background-color: rgb(76, 192, 76);
 }
 
 .priority-medium {
-    background-color: orange;
+    background-color: rgb(255, 193, 78);
 }
 
 .priority-high {
-    background-color: red;
+    background-color: rgb(255, 105, 105);
 }
 
 .delete-btn {
