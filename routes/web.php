@@ -10,6 +10,3 @@ Route::get('/', function () {
 Route::get('/{pathMatch}', function () {
     return view('welcome');
 })->where('pathMatch', '.*');
-
-Route::post("/auth/register", [UserController::class, 'register']);
-Route::post("/auth/login", [UserController::class, 'login']);

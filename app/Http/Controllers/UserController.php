@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -41,14 +40,7 @@ class UserController extends Controller
                 'message' => 'Bad creds'
             ], 401);
         }
-
-        // if(!$user || !Hash::check($data['password'], $user->password)) {
-        //     return response([
-        //         'message' => 'Bad creds'
-        //     ], 401);
-        // }
-
-
+        
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return [

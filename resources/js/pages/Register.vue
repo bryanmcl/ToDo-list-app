@@ -33,9 +33,9 @@ const form = reactive({
 });
 
 async function handleSignUp() {
-    console.log(form)
+    console.log(form);
     await axios
-        .post("/auth/register", form)
+        .post("/api/auth/register", form)
         .then((response) => {
             console.log(response);
         })

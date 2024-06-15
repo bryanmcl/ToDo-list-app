@@ -33,7 +33,7 @@ const form = reactive({
 
 async function handleSignIn() {
     store.login(form).then(() => {
-        router.push("/dashboard");
+        router.push("/task-list");
     });
 }
 </script>

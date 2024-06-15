@@ -2,7 +2,7 @@
     <div v-if="isVisible" class="modal-wrapper">
         <form>
             <input v-model="form.title" type="text" placeholder="Task name" />
-            <input v-model="form.date" type="date" />
+            <input v-model="form.date" type="datetime-local" />
             <select v-model="form.priority">
                 <option disabled selected value="">Select priorities</option>
                 <option value="high">High</option>
@@ -22,6 +22,7 @@
 <script setup>
 import { computed, reactive } from "vue";
 import { useStore } from "../store/store";
+import { toast } from "vue3-toastify";
 
 const store = useStore();
 
@@ -50,13 +51,30 @@ const savePayload = computed(() => {
     };
 });
 
+function resetForm() {
+    form.title = "";
+    form.due_date = "";
+    form.priority = "";
+}
+
 function handleAddTask() {
-    console.log(savePayload);
-    store.addTask(savePayload.value);
+    store
+        .addTask(savePayload.value)
+        .then(() => {
+            toast.success("Task added successfuly");
+        })
+        .catch((error) => {
+            console.log("error: ", error.response.data.message);
+            toast.error(
+                `Failed to create task. ${error.response.data.message}`
+            );
+        });
+    resetForm();
     emit("close");
 }
 
 function onClickCancel() {
+    resetForm();
     emit("close");
 }
 </script>

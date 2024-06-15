@@ -3,14 +3,18 @@
     padding: 0;
 }
 
+a {
+    text-decoration: none;
+}
+
 #app {
     --light-grey: #eee;
     --grey: #ccc;
     --pale-dogwood: #ddc8c4ff;
     --primary: rgb(29, 104, 216);
     --eggplant: #6b4d57ff;
-    --dark: #13070cff;
+    --dark: rgb(32, 35, 37);
     min-height: 100vh;
     background-color: var(--light);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }

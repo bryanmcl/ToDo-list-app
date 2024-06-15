@@ -20,7 +20,7 @@ class TaskFactory extends Factory
         return [
             'user_id' => User::factory(),
             'title' => $this->faker->sentence,
-            'due_date' => $this->faker->date(),
+            'due_date' => $this->faker->dateTime(),
             'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
             'is_completed' => $this->faker->boolean()
         ];

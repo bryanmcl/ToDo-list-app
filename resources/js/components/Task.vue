@@ -8,7 +8,7 @@
         <div class="label-wrapper">
             <label class="date-label">
                 <ClockIcon class="icon" />
-                {{ dueDate }}
+                {{ formatDateTime(dueDate) }}
             </label>
             <label :class="['priority-label', priorityClass]">{{
                 priority
@@ -25,12 +25,13 @@
 import { ClockIcon, TrashIcon } from "@heroicons/vue/16/solid";
 import { computed, ref, watch } from "vue";
 import { useStore } from "../store/store";
+import { formatDateTime } from "../utils/date";
 
 const store = useStore();
 
 const { id, title, dueDate, priority, isCompleted } = defineProps({
     id: {
-        type: String,
+        type: Number,
         required: true,
     },
     title: {
@@ -51,14 +52,14 @@ const { id, title, dueDate, priority, isCompleted } = defineProps({
     },
 });
 
-const emit = defineEmits(["update:isCompleted", "deleteTask"]);
+const emit = defineEmits(["deleteTask"]);
 
 const isChecked = ref(!!isCompleted);
 
 watch(
     () => isChecked.value,
     (newValue) => {
-        emit("update:isCompleted", newValue);
+        store.updateTask(id, { is_completed: newValue });
     }
 );
 

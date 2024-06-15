@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Dashboard from "../pages/Dashboard.vue";
+import TaskList from "../pages/TaskList.vue";
 import HomePage from "../pages/HomePage.vue";
 import Login from "../pages/Login.vue";
 import Register from "../pages/Register.vue";
@@ -7,11 +7,7 @@ import { useStore } from "../store/store";
 
 const routes = [
     { name: "Home", path: "/", component: HomePage },
-    {
-        name: "Dashboard",
-        path: "/dashboard",
-        component: Dashboard,
-    },
+    { name: "TaskList", path: "/task-list", component: TaskList },
     { name: "Login", path: "/login", component: Login },
     { name: "Register", path: "/register", component: Register },
 ];

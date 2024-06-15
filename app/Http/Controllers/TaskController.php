@@ -31,12 +31,17 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request)
     {
-        $task = Task::create($request->validated());
+        try {
+            $task = Task::create($request->validated());
 
-        return response()->json([
-            'task' => $task,
-            'message' => 'Task created successfully'
-        ], 201);
+            return response()->json([
+                'task' => $task,
+                'message' => 'Task created successfully'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create task', 'error' => $e->getMessage()], 500);
+        }
+
     }
 
     /**
@@ -60,7 +65,17 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        //
+        try {
+            $validatedData = $request->validated();
+            $task->update($validatedData);
+
+            return response()->json([
+                'task' => $task,
+                'message' => 'Task updated successfully'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update task', 'error' => $e->getMessage()], 500);
+        }    
     }
 
     /**

@@ -2,7 +2,7 @@
     <div class="dashboard-wrapper">
         <Sidebar />
         <div class="tasks-wrapper">
-            <h1>Task List</h1>
+            <h1>{{ pageTitle }}</h1>
             <button @click="isModalVisible = true">+ Create New Task</button>
             <SearchBar
                 v-model:searchQuery="searchQuery"
@@ -16,7 +16,7 @@
                     :title="task.title"
                     :dueDate="task.due_date"
                     :priority="task.priority"
-                    v-model:isCompleted="task.is_completed"
+                    :isCompleted="task.is_completed"
                 />
             </div>
         </div>
@@ -26,13 +26,18 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
 import CreateModal from "../components/CreateModal.vue";
 import Sidebar from "../components/Sidebar.vue";
 import Task from "../components/Task.vue";
 import SearchBar from "../components/SearchBar.vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useStore } from "../store/store";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import { toast } from "vue3-toastify";
+
+const store = useStore();
+const router = useRouter();
+const route = useRoute();
 
 const PRIORITY_MAP = {
     high: 1,
@@ -40,15 +45,27 @@ const PRIORITY_MAP = {
     low: 3,
 };
 
-const store = useStore();
-const router = useRouter();
-
 const isModalVisible = ref(false);
+const taskList = ref([]);
 const searchQuery = ref("");
 const sortOption = ref("dueDate");
 
+const pageTitle = computed(() => {
+    switch (route.query.filter) {
+        case "today":
+            return "Today's Task";
+            break;
+        case "completed":
+            return "Completed Task";
+            break;
+        default:
+            return "All Task";
+            break;
+    }
+});
+
 const filteredAndSortedTasks = computed(() => {
-    const filteredTasks = store.tasks.filter((task) =>
+    const filteredTasks = taskList.value.filter((task) =>
         task.title.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
     const sortedTask = sortTask([...filteredTasks], sortOption.value);
@@ -56,14 +73,6 @@ const filteredAndSortedTasks = computed(() => {
     const completedTask = sortedTask.filter((task) => task.is_completed);
     const nonCompletedTask = sortedTask.filter((task) => !task.is_completed);
     return [...nonCompletedTask, ...completedTask];
-});
-
-onMounted(() => {
-    store.fetchUser();
-
-    if (!store.isAuthenticated) {
-        router.push("/login");
-    }
 });
 
 function sortTask(array, sort) {
@@ -86,6 +95,44 @@ function sortTask(array, sort) {
 
     return array;
 }
+
+function populateTaskAndTitle() {
+    switch (route.query.filter) {
+        case "today":
+            taskList.value = store.tasksDueToday;
+            break;
+        case "completed":
+            taskList.value = store.completedTasks;
+            break;
+        default:
+            taskList.value = store.tasks;
+            break;
+    }
+}
+
+function redirectToTodayTasks() {
+    router.push({ ...route, query: { filter: "today" } });
+}
+
+onMounted(() => {
+    store.fetchUser().then(() => {
+        if (!store.isAuthenticated) router.push("/login");
+        if (store.tasksDueToday.length > 0) {
+            toast.warning(
+                `You have ${store.tasksDueToday.length} tasks due today.`,
+                { autoClose: 10000, onClick: redirectToTodayTasks }
+            );
+        }
+        populateTaskAndTitle(route.query.filter);
+    });
+});
+
+watch(
+    () => [route.query.filter, store._tasks],
+    () => {
+        populateTaskAndTitle();
+    }
+);
 </script>
 
 <style scoped>
@@ -97,6 +144,9 @@ function sortTask(array, sort) {
 .tasks-wrapper {
     flex-grow: 1;
     padding: 2rem;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 button {
