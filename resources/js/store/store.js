@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import apiClient from "../axios";
-import axios from "axios";
 import { formatDate } from "../utils/date";
 
 export const useStore = defineStore("store", {
@@ -12,42 +11,53 @@ export const useStore = defineStore("store", {
     },
     actions: {
         async login(form) {
-            return axios
-                .post("/api/auth/login", form)
-                .then((response) => {
-                    localStorage.setItem("auth_token", response.data.token);
-                    this._user = response.data.user;
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
+            return new Promise((resolve, reject) => {
+                apiClient
+                    .post("/api/auth/login", form)
+                    .then((response) => {
+                        localStorage.setItem("auth_token", response.data.token);
+                        this._user = response.data.user;
+                        resolve(response.data);
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        reject(error);
+                    });
+            });
         },
         async logout() {
-            return apiClient
-                .post("/api/logout")
-                .then(() => {
-                    this._user = null;
-                    this._tasks = [];
-                    localStorage.removeItem("auth_token");
-                })
-                .catch((error) => {
-                    console.error("Failed to logout:", error);
-                });
+            return new Promise((resolve, reject) => {
+                apiClient
+                    .post("/api/logout")
+                    .then((response) => {
+                        this._user = null;
+                        this._tasks = [];
+                        localStorage.removeItem("auth_token");
+                        resolve(response.data);
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+            return;
         },
         async fetchUser() {
-            return apiClient
-                .get("/api/user")
-                .then((response) => {
-                    const { tasks, ...rest } = response.data;
-                    this._user = rest;
-                    this._tasks = tasks.map((task) => ({
-                        ...task,
-                        is_completed: !!task.is_completed,
-                    }));
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
+            return new Promise((resolve, reject) => {
+                apiClient
+                    .get("/api/user")
+                    .then((response) => {
+                        const { tasks, ...rest } = response.data;
+                        this._user = rest;
+                        this._tasks = tasks.map((task) => ({
+                            ...task,
+                            is_completed: !!task.is_completed,
+                        }));
+                        resolve(response.data);
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
         },
         async addTask(payload) {
             return new Promise((resolve, reject) => {
@@ -63,33 +73,41 @@ export const useStore = defineStore("store", {
             });
         },
         deleteTask(id) {
-            apiClient
-                .delete("/api/tasks/" + id)
-                .then(() => {
-                    this._tasks = this._tasks.filter((task) => task.id !== id);
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
+            return new Promise((resolve, reject) => {
+                apiClient
+                    .delete("/api/tasks/" + id)
+                    .then((response) => {
+                        this._tasks = this._tasks.filter(
+                            (task) => task.id !== id
+                        );
+                        resolve(response.data);
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
         },
         async updateTask(id, payload) {
-            apiClient
-                .put("/api/tasks/" + id, payload)
-                .then((response) => {
-                    this._tasks = this.tasks.map((task) => {
-                        if (task.id === id) {
-                            return { ...task, ...response.data.task };
-                        }
-                        return task;
+            return new Promise((resolve, reject) => {
+                apiClient
+                    .put("/api/tasks/" + id, payload)
+                    .then((response) => {
+                        this._tasks = this.tasks.map((task) => {
+                            if (task.id === id) {
+                                return { ...task, ...response.data.task };
+                            }
+                            return task;
+                        });
+                        resolve(response.data);
+                    })
+                    .catch((error) => {
+                        reject(error);
                     });
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
+            });
         },
     },
     getters: {
-        isAuthenticated: (state) => !!state._user,
+        isAuthenticated: () => !!localStorage.getItem("auth_token"),
         user: (state) => state._user,
         tasks: (state) => state._tasks,
         tasksDueToday: (state) => {

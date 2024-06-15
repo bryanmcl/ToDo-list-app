@@ -38,7 +38,7 @@ async function handleSignIn() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .login-wrapper {
     display: flex;
     justify-content: center;
@@ -46,22 +46,63 @@ async function handleSignIn() {
     padding: 0 2rem;
     min-height: 100vh;
     background-color: var(--light-grey);
-}
 
-.form-wrapper {
-    flex-grow: 1;
-    max-width: 400px;
-    background-color: white;
-    padding: 2rem;
-}
+    .form-wrapper {
+        flex-grow: 1;
+        max-width: 400px;
+        background-color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
-.input-wrapper {
-    margin-top: 15px;
-}
+        h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+        }
 
-.input-wrapper input {
-    display: block;
-    width: 100%;
-    margin: 10px 0;
+        .input-wrapper {
+            margin-top: 1rem;
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: bold;
+            }
+
+            input {
+                display: block;
+                width: 100%;
+                padding: 0.75rem;
+                margin-bottom: 0.5rem;
+                border: 1px solid var(--grey);
+                border-radius: 0.5rem;
+                font-size: 1rem;
+                box-sizing: border-box;
+
+                &:focus {
+                    border-color: var(--primary);
+                    outline: none;
+                }
+            }
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+
+            &:hover {
+                background-color: rgb(49, 77, 168);
+            }
+        }
+    }
 }
 </style>

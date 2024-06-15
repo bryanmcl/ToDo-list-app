@@ -2,7 +2,7 @@
     <div v-if="isVisible" class="modal-wrapper">
         <form>
             <input v-model="form.title" type="text" placeholder="Task name" />
-            <input v-model="form.date" type="datetime-local" />
+            <input v-model="form.due_date" type="datetime-local" />
             <select v-model="form.priority">
                 <option disabled selected value="">Select priorities</option>
                 <option value="high">High</option>
@@ -20,7 +20,14 @@
 </template>
 
 <script setup>
-import { computed, reactive } from "vue";
+import {
+    computed,
+    onActivated,
+    onBeforeMount,
+    onUpdated,
+    reactive,
+    watch,
+} from "vue";
 import { useStore } from "../store/store";
 import { toast } from "vue3-toastify";
 
@@ -30,6 +37,10 @@ const props = defineProps({
     isVisible: {
         type: Boolean,
         default: false,
+    },
+    task: {
+        type: Object,
+        default: {},
     },
 });
 
@@ -45,7 +56,7 @@ const savePayload = computed(() => {
     return {
         user_id: store.user.id,
         title: form.title,
-        due_date: form.date,
+        due_date: form.due_date,
         priority: form.priority,
         is_completed: false,
     };
@@ -58,17 +69,32 @@ function resetForm() {
 }
 
 function handleAddTask() {
-    store
-        .addTask(savePayload.value)
-        .then(() => {
-            toast.success("Task added successfuly");
-        })
-        .catch((error) => {
-            console.log("error: ", error.response.data.message);
-            toast.error(
-                `Failed to create task. ${error.response.data.message}`
-            );
-        });
+    if (!props.task) {
+        store
+            .addTask(savePayload.value)
+            .then(() => {
+                toast.success("Task added successfuly");
+            })
+            .catch((error) => {
+                console.log("error: ", error.response.data.message);
+                toast.error(
+                    `Failed to create task. ${error.response.data.message}`
+                );
+            });
+    } else {
+        store
+            .updateTask(props.task.id, savePayload.value)
+            .then(() => {
+                toast.success("Task updated successfuly");
+            })
+            .catch((error) => {
+                console.log("error: ", error.response.data.message);
+                toast.error(
+                    `Failed to update task. ${error.response.data.message}`
+                );
+            });
+    }
+
     resetForm();
     emit("close");
 }
@@ -77,13 +103,23 @@ function onClickCancel() {
     resetForm();
     emit("close");
 }
+
+watch(
+    () => props.task,
+    (newTask) => {
+        form.title = newTask?.title || "";
+        form.due_date = newTask?.due_date || "";
+        form.priority = newTask?.priority || "";
+    },
+    { immediate: true }
+);
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .overlay {
     position: fixed;
     top: 0;
-    left: 9;
+    left: 0;
     background-color: black;
     opacity: 0.5;
     height: 100vh;
@@ -94,7 +130,7 @@ function onClickCancel() {
 .modal-wrapper {
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    padding: 2rem;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -102,49 +138,57 @@ function onClickCancel() {
     background-color: white;
     width: 90%;
     max-width: 600px;
-    min-height: 150px;
+    min-height: 200px;
     z-index: 999;
     border-radius: 1rem;
-}
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 
-form {
-    flex-grow: 1;
-}
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
 
-input[type="text"],
-input[type="date"],
-select {
-    padding: 10px;
-    box-sizing: border-box;
-    border: none;
-    border-bottom: solid 2px var(--grey);
-}
+    input[type="text"],
+    input[type="datetime-local"],
+    select {
+        padding: 0.75rem;
+        box-sizing: border-box;
+        border: 2px solid var(--grey);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+    }
 
-input:focus {
-    outline: none;
-}
+    input:focus,
+    select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
 
-input[type="text"] {
-    width: 100%;
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
+    .action-button {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
 
-button {
-    padding: 10px;
-    margin-left: 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: var(--primary);
-    color: white;
-}
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
 
-.action-button {
-    margin-left: auto;
-}
+            &.cancel {
+                background-color: grey;
+                color: white;
+            }
 
-.cancel {
-    background-color: grey;
+            &:not(.cancel) {
+                background-color: var(--primary);
+                color: white;
+            }
+        }
+    }
 }
 </style>

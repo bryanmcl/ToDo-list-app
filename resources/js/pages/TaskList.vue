@@ -3,7 +3,12 @@
         <Sidebar />
         <div class="tasks-wrapper">
             <h1>{{ pageTitle }}</h1>
-            <button @click="isModalVisible = true">+ Create New Task</button>
+            <button class="new-task-btn" @click="isModalVisible = true">
+                + Create New Task
+            </button>
+            <button class="floating-btn" @click="isModalVisible = true">
+                <PlusIcon class="icon" />
+            </button>
             <SearchBar
                 v-model:searchQuery="searchQuery"
                 v-model:sortOption="sortOption"
@@ -17,12 +22,17 @@
                     :dueDate="task.due_date"
                     :priority="task.priority"
                     :isCompleted="task.is_completed"
+                    @editTask="editTask"
                 />
             </div>
         </div>
     </div>
 
-    <CreateModal :isVisible="isModalVisible" @close="isModalVisible = false" />
+    <CreateModal
+        :isVisible="isModalVisible"
+        :task="editedTask"
+        @close="isModalVisible = false"
+    />
 </template>
 
 <script setup>
@@ -34,6 +44,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useStore } from "../store/store";
 import { useRoute, useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
+import { PlusIcon } from "@heroicons/vue/20/solid";
 
 const store = useStore();
 const router = useRouter();
@@ -49,6 +60,7 @@ const isModalVisible = ref(false);
 const taskList = ref([]);
 const searchQuery = ref("");
 const sortOption = ref("dueDate");
+const editedTask = ref(null);
 
 const pageTitle = computed(() => {
     switch (route.query.filter) {
@@ -114,17 +126,28 @@ function redirectToTodayTasks() {
     router.push({ ...route, query: { filter: "today" } });
 }
 
+function editTask(id) {
+    editedTask.value = store.tasks.find((task) => task.id === id);
+    isModalVisible.value = true;
+}
+
 onMounted(() => {
-    store.fetchUser().then(() => {
-        if (!store.isAuthenticated) router.push("/login");
-        if (store.tasksDueToday.length > 0) {
-            toast.warning(
-                `You have ${store.tasksDueToday.length} tasks due today.`,
-                { autoClose: 10000, onClick: redirectToTodayTasks }
-            );
-        }
-        populateTaskAndTitle(route.query.filter);
-    });
+    if (!store.isAuthenticated) router.push("/login");
+    store
+        .fetchUser()
+        .then(() => {
+            if (store.tasksDueToday.length > 0) {
+                toast.warning(
+                    `You have ${store.tasksDueToday.length} tasks due today.`,
+                    { autoClose: 10000, onClick: redirectToTodayTasks }
+                );
+            }
+            populateTaskAndTitle(route.query.filter);
+        })
+        .catch(() => {
+            router.push("/login");
+            toast.error("Not Authorized.");
+        });
 });
 
 watch(
@@ -135,10 +158,10 @@ watch(
 );
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .dashboard-wrapper {
     display: flex;
-    min-height: 100vh;
+    box-sizing: border-box;
 }
 
 .tasks-wrapper {
@@ -159,11 +182,40 @@ button {
     color: white;
 }
 
+.floating-btn {
+    display: none;
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    z-index: 997;
+    padding: 10px;
+    border-radius: 10px;
+    
+    .icon {
+        width: 50px;
+        height: 50px;
+    }
+}
+
 .task-list-container {
     margin-top: 1rem;
 }
 
 h1 {
     color: var(--dark);
+}
+
+@media only screen and (max-width: 700px) {
+    .tasks-wrapper {
+        padding-bottom: 100px;
+
+        .new-task-btn {
+            display: none;
+        }
+
+        .floating-btn {
+            display: block;
+        }
+    }
 }
 </style>

@@ -58,21 +58,43 @@ const debounceEmit = debounce((newValue) => {
 }, 300);
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .search-bar-wrapper {
     display: flex;
-    gap: 20px;
-    background-color: var(--light-grey);
-    padding: 10px;
+    gap: 10px;
     box-sizing: border-box;
     margin: 15px 0;
+
+    .search-bar {
+        flex-grow: 1;
+    }
+
+    input[type="text"],
+    select {
+        padding: 0.75rem;
+        box-sizing: border-box;
+        border: 2px solid var(--grey);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        width: 100%;
+    }
 }
 
-.search-bar {
-    flex-grow: 1;
-}
+@media only screen and (max-width: 700px) {
+    .search-bar-wrapper {
+        padding: 0;
+        background: none;
+        gap: 10px;
 
-.search-bar input {
-    width: 100%;
+        .search-bar {
+            flex-grow: 1;
+        }
+
+        input[type="text"],
+        select {
+            border-radius: 30px;
+            border: 2px solid var(--grey);
+        }
+    }
 }
 </style>
