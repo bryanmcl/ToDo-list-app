@@ -24,7 +24,6 @@ class TaskController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
@@ -32,7 +31,17 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request)
     {
-        //
+        try {
+            $task = Task::create($request->validated());
+
+            return response()->json([
+                'task' => $task,
+                'message' => 'Task created successfully'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to create task', 'error' => $e->getMessage()], 500);
+        }
+
     }
 
     /**
@@ -50,13 +59,23 @@ class TaskController extends Controller
     {
         //
     }
-
+    
     /**
      * Update the specified resource in storage.
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        //
+        try {
+            $validatedData = $request->validated();
+            $task->update($validatedData);
+
+            return response()->json([
+                'task' => $task,
+                'message' => 'Task updated successfully'
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update task', 'error' => $e->getMessage()], 500);
+        }    
     }
 
     /**
@@ -64,6 +83,12 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        try {
+            $task->delete();
+
+            return response()->json(['message' => 'Task deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete task', 'error' => $e->getMessage()], 500);
+        }
     }
 }

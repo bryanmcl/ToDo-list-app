@@ -1,8 +1,12 @@
 <template>
-    <div class="login-wrapper">
+    <div class="register-wrapper">
         <div class="form-wrapper">
             <div>
-                <h2>Sign In</h2>
+                <h2>Sign Up</h2>
+                <div class="input-wrapper">
+                    <label>Name</label>
+                    <input v-model="form.name" type="text" />
+                </div>
                 <div class="input-wrapper">
                     <label>Email</label>
                     <input v-model="form.email" type="email" />
@@ -12,34 +16,37 @@
                     <input v-model="form.password" type="password" />
                 </div>
 
-                <button @click="handleSignIn">Sign Up</button>
+                <button @click="handleSignUp">Sign Up</button>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
+import axios from "axios";
 import { reactive } from "vue";
-import { useRouter } from "vue-router";
-import { useStore } from "../store/store";
-
-const store = useStore();
-const router = useRouter();
 
 const form = reactive({
+    name: "",
     email: "",
     password: "",
 });
 
-async function handleSignIn() {
-    store.login(form).then(() => {
-        router.push("/task-list");
-    });
+async function handleSignUp() {
+    console.log(form);
+    await axios
+        .post("/api/auth/register", form)
+        .then((response) => {
+            console.log(response);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
 }
 </script>
 
 <style scoped>
-.login-wrapper {
+.register-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;

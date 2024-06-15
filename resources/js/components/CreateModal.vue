@@ -2,53 +2,80 @@
     <div v-if="isVisible" class="modal-wrapper">
         <form>
             <input v-model="form.title" type="text" placeholder="Task name" />
-            <input v-model="form.date" type="date" />
+            <input v-model="form.date" type="datetime-local" />
             <select v-model="form.priority">
                 <option disabled selected value="">Select priorities</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
             </select>
         </form>
 
-
         <div class="action-button">
-            <button @click="onClickCancel" class="cancel">
-                Cancel
-            </button>
-            <button @click="handleAddtask">
-                Add Task
-            </button>
+            <button @click="onClickCancel" class="cancel">Cancel</button>
+            <button @click="handleAddTask">Add Task</button>
         </div>
     </div>
     <div v-if="isVisible" class="overlay"></div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, reactive } from "vue";
+import { useStore } from "../store/store";
+import { toast } from "vue3-toastify";
+
+const store = useStore();
 
 const props = defineProps({
     isVisible: {
         type: Boolean,
-        default: false
-    }
-})
+        default: false,
+    },
+});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close", "taskCreated"]);
 
-const form = ref({
-    title: '',
-    date: '',
-    priority: ''
-})
+const form = reactive({
+    title: "",
+    due_date: "",
+    priority: "",
+});
 
+const savePayload = computed(() => {
+    return {
+        user_id: store.user.id,
+        title: form.title,
+        due_date: form.date,
+        priority: form.priority,
+        is_completed: false,
+    };
+});
 
-function handleAddtask() {
-    console.log(form.value);
+function resetForm() {
+    form.title = "";
+    form.due_date = "";
+    form.priority = "";
+}
+
+function handleAddTask() {
+    store
+        .addTask(savePayload.value)
+        .then(() => {
+            toast.success("Task added successfuly");
+        })
+        .catch((error) => {
+            console.log("error: ", error.response.data.message);
+            toast.error(
+                `Failed to create task. ${error.response.data.message}`
+            );
+        });
+    resetForm();
+    emit("close");
 }
 
 function onClickCancel() {
-    emit('close')
+    resetForm();
+    emit("close");
 }
 </script>
 
@@ -68,7 +95,7 @@ function onClickCancel() {
     display: flex;
     flex-direction: column;
     padding: 1rem;
-    top:50%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     position: fixed;
@@ -84,8 +111,8 @@ form {
     flex-grow: 1;
 }
 
-input[type=text],
-input[type=date],
+input[type="text"],
+input[type="date"],
 select {
     padding: 10px;
     box-sizing: border-box;
@@ -97,7 +124,7 @@ input:focus {
     outline: none;
 }
 
-input[type=text] {
+input[type="text"] {
     width: 100%;
     font-size: 20px;
     font-weight: bold;
@@ -118,6 +145,6 @@ button {
 }
 
 .cancel {
-    background-color: grey
+    background-color: grey;
 }
 </style>

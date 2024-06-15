@@ -1,22 +1,84 @@
 <template>
     <div class="task-container">
-        <div class="task-title">
-            <input type="checkbox" />
-            <h2>Task 1 Water the plant or something</h2>
-        </div>
-        
+        <label class="task-title">
+            <input type="checkbox" v-model="isChecked" />
+            <h2>{{ title }}</h2>
+        </label>
+
         <div class="label-wrapper">
             <label class="date-label">
                 <ClockIcon class="icon" />
-                14/06/24 00:00
+                {{ formatDateTime(dueDate) }}
             </label>
-            <label class="priority-label">Important</label>
+            <label :class="['priority-label', priorityClass]">{{
+                priority
+            }}</label>
         </div>
+
+        <button class="delete-btn" @click="deleteTask">
+            <TrashIcon class="icon" />
+        </button>
     </div>
 </template>
 
 <script setup>
-    import { ClockIcon } from '@heroicons/vue/16/solid';
+import { ClockIcon, TrashIcon } from "@heroicons/vue/16/solid";
+import { computed, ref, watch } from "vue";
+import { useStore } from "../store/store";
+import { formatDateTime } from "../utils/date";
+
+const store = useStore();
+
+const { id, title, dueDate, priority, isCompleted } = defineProps({
+    id: {
+        type: Number,
+        required: true,
+    },
+    title: {
+        type: String,
+        required: true,
+    },
+    dueDate: {
+        type: String,
+        default: "",
+    },
+    priority: {
+        type: String,
+        default: "low",
+    },
+    isCompleted: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+const emit = defineEmits(["deleteTask"]);
+
+const isChecked = ref(!!isCompleted);
+
+watch(
+    () => isChecked.value,
+    (newValue) => {
+        store.updateTask(id, { is_completed: newValue });
+    }
+);
+
+const priorityClass = computed(() => {
+    switch (priority) {
+        case "low":
+            return "priority-low";
+        case "medium":
+            return "priority-medium";
+        case "high":
+            return "priority-high";
+        default:
+            return "";
+    }
+});
+
+function deleteTask() {
+    store.deleteTask(id);
+}
 </script>
 
 <style scoped>
@@ -29,6 +91,7 @@
     height: 80px;
 
     border-radius: 5px;
+    background-color: white;
     box-shadow: 2px 2px 5px 2px var(--grey);
 }
 
@@ -46,11 +109,14 @@
     font-size: 18px;
 }
 
+input:checked ~ h2 {
+    text-decoration: line-through;
+}
+
 .label-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: end;
-
 }
 
 .label-wrapper .date-label {
@@ -66,11 +132,22 @@
 .priority-label {
     padding: 5px 20px;
     border-radius: 100px;
-    color: var(--light);
-    background-color: rgb(138, 21, 21);
+    color: white;
 }
 
-.elipsis-button {
+.priority-low {
+    background-color: rgb(76, 192, 76);
+}
+
+.priority-medium {
+    background-color: rgb(255, 193, 78);
+}
+
+.priority-high {
+    background-color: rgb(255, 105, 105);
+}
+
+.delete-btn {
     position: absolute;
     top: 5px;
     right: 12px;
@@ -82,7 +159,7 @@
     cursor: pointer;
 }
 
-.elipsis-button:hover {
+.delete-btn:hover {
     background-color: var(--grey);
 }
 </style>
